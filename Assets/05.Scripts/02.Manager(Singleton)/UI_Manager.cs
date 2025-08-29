@@ -54,9 +54,9 @@ public class UI_Manager : MonoBehaviour
 
     [Header("Panel")]
     public UI_SettingPanel _settingPanel;
+    public UI_Intro _introPanel;
     public GameObject _overPanel;
     public GameObject _savePanel;
-    public GameObject _startPanel;
     public GameObject _guiPanel;
 
     [Header("GUI")]
@@ -110,7 +110,7 @@ public class UI_Manager : MonoBehaviour
         _invenV.gameObject.SetActive(false);
         _overPanel.SetActive(false);
         _savePanel.SetActive(false);
-        _startPanel.SetActive(true);
+        _introPanel.gameObject.SetActive(true);
 
         _settingPanel.InitPanel();
 

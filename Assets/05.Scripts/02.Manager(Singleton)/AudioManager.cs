@@ -85,10 +85,6 @@ public class AudioManager : MonoBehaviour
             else
                 Debug.LogWarning($"[AudioManager] 중복된 SFX 이름: {sfx.name}");
         }
-
-        // 첫 BGM 실행
-        if (bgmStart != null)
-            PlayBGM(bgmStart);
     }
 
     void Update()

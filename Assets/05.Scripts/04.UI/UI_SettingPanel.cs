@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Scene = UnityEngine.SceneManagement.Scene;
 using Cysharp.Threading.Tasks;
+using UnityEngine.Video;
 
 public class UI_SettingPanel : MonoBehaviour
 {
@@ -15,29 +16,14 @@ public class UI_SettingPanel : MonoBehaviour
     public Slider _sfxSlider;
     public PostProcessVolume _postProcessing;
 
-    PlayerController _controller;
-    GameObject _startPanel;
     GameObject _savePanel;
-    GameObject _guiPanel;
     InventoryV _invenV;
 
     public void InitPanel()
     {
-        _startPanel = UI_Manager.Instance._startPanel;
         _savePanel = UI_Manager.Instance._savePanel;
-        _guiPanel = UI_Manager.Instance._guiPanel;
-        _controller = SafeFetchHelper.GetOrError<PlayerController>(Player.Instance.gameObject);
         _invenV = SafeFetchHelper.GetChild<InventoryV>(UI_Manager.Instance.gameObject);
         _postProcessing.enabled = false;
-    }
-    public void OnStart()
-    {
-        _startPanel.SetActive(false);
-        _guiPanel.SetActive(true);
-        DirectionManager.Instance.Direction_Intro();
-        //AudioManager.Instance.PlayBGM("Game");
-
-        //SceneManager.LoadScene("MainScene_Floor2");
     }
 
     public void OpenUI()
