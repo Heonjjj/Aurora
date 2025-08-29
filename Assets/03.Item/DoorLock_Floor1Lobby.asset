@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44890fc41bf81a147983a8417da06ddb, type: 3}
+  m_Name: DoorLock_Floor1Lobby
+  m_EditorClassIdentifier: 
+  id: 4c09b8a9c2b449ce9b199c6f19e0e343
+  displayName: "\uD559\uAD50 \uD604\uAD00"
+  description: "\uBC16\uC73C\uB85C \uD1B5\uD558\uB294 \uD604\uAD00\uBB38\uC774\uB2E4.
+    \uC9C0\uAE08\uC740 \uC7A0\uACA8\uC788\uB2E4"
+  type: 0
+  icon: {fileID: 0}
+  itemPrefab: {fileID: 0}
+  stackable: 0
+  maxStack: 0
+  getable: 0

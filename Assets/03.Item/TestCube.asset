@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44890fc41bf81a147983a8417da06ddb, type: 3}
+  m_Name: TestCube
+  m_EditorClassIdentifier: 
+  id: b760bf0693a0469db60b907694fca155
+  displayName: Test Cube
+  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uD050\uBE0C\uC785\uB2C8\uB2E4"
+  type: 0
+  icon: {fileID: 0}
+  itemPrefab: {fileID: 8474558498725824937, guid: 197f45437e54b4645b447681cbdaacfd, type: 3}
+  stackable: 1
+  maxStack: 99
