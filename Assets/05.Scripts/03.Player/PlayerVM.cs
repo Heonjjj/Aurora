@@ -45,8 +45,6 @@ public class PlayerVM : IDisposable
         Penetration = Observable.Return(model.Penetration).ToReadOnlyReactiveProperty().AddTo(disposables);
         StaminaRegen = Observable.Return(model.StaminaRegenRate).ToReadOnlyReactiveProperty().AddTo(disposables);
 
-        InventoryVM = new InventoryVM(this.model.Inventory);
-
         var levelUpSubject = new Subject<int>();
         model.OnLevelUp += level => levelUpSubject.OnNext(level);
         OnLevelUp = levelUpSubject.AsObservable();

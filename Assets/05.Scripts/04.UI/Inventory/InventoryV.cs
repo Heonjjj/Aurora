@@ -9,59 +9,54 @@ public class InventoryV : MonoBehaviour
 {
     public Transform slotPanel;
     public GameObject slotPrefab;
-    public TextMeshProUGUI nameText;
-    public TextMeshProUGUI descriptionText;
+    public TMP_Text nameText;
+    public TMP_Text descriptionText;
     public GameObject useButton;
     public GameObject equipButton;
     public GameObject unequipButton;
     public GameObject dropButton;
 
-    public GameObject statusPanel;
-    public GameObject invenPanel;
-    public GameObject skillPanel;
-    public Toggle statusToggle;
-    public Toggle invenToggle;
-    public Toggle skillToggle;
-
     private InventoryVM viewModel;
-    private ItemSlotV[] slots;
+    private EventMediator manager;
+    private ItemSlotV[] slotViews;
     private CompositeDisposable disposables = new CompositeDisposable();
 
-    private PlayerM player; // 현재 인벤토리 주인
+    private IPlayer player; // 현재 인벤토리 주인
 
-    public void Init(InventoryVM vm, PlayerM player)
+    public void Init(InventoryVM vm, EventMediator mgr, IPlayer player)
     {
         viewModel = vm;
+        manager = mgr;
         this.player = player;
 
-        slots = slotPanel.GetComponentsInChildren<ItemSlotV>();
+        slotViews = slotPanel.GetComponentsInChildren<ItemSlotV>();
+        int count = Mathf.Min(slotViews.Length, viewModel.Slots.Count);
 
-        for (int i = 0; i < slots.Length && i < viewModel.Slots.Count; i++)
+        for (int i = 0; i < count; i++)
         {
-            int idx = i; // closure 문제 방지
-            slots[i].Init(viewModel.Slots[i], idx, OnSelectItem);
+            int idx = i; // closure 방지
+            slotViews[i].Init(viewModel.Slots[i], idx, OnSelectItem);
         }
 
-        if (slots.Length > 0)
-            OnSelectItem(0);
+        if (count > 0) OnSelectItem(0);
 
-        // 버튼 클릭 연결
+        // 버튼 클릭 바인딩
         useButton.GetComponent<Button>().onClick.AddListener(() =>
         {
             if (viewModel.SelectedIndex.Value.HasValue)
-                viewModel.Model.RequestUse(viewModel.SelectedIndex.Value.Value, player);
+                manager.UseItem(viewModel.SelectedIndex.Value.Value);
         });
 
         equipButton.GetComponent<Button>().onClick.AddListener(() =>
         {
             if (viewModel.SelectedIndex.Value.HasValue)
-                viewModel.Model.RequestEquip(viewModel.SelectedIndex.Value.Value, player);
+                manager.EquipItem(viewModel.SelectedIndex.Value.Value);
         });
 
         unequipButton.GetComponent<Button>().onClick.AddListener(() =>
         {
             if (viewModel.SelectedIndex.Value.HasValue)
-                viewModel.Model.RequestUnEquip(viewModel.SelectedIndex.Value.Value, player);
+                manager.UnEquipItem(viewModel.SelectedIndex.Value.Value);
         });
 
         dropButton.GetComponent<Button>().onClick.AddListener(() =>
@@ -69,9 +64,6 @@ public class InventoryV : MonoBehaviour
             if (viewModel.SelectedIndex.Value.HasValue)
                 viewModel.Model.RemoveItem(viewModel.SelectedIndex.Value.Value, 1);
         });
-
-        // 처음 시작하면 스탯창만 켜기
-        statusToggle.isOn = true;
     }
 
     private void OnSelectItem(int index)
@@ -79,11 +71,8 @@ public class InventoryV : MonoBehaviour
         viewModel.SelectedIndex.Value = index;
         UpdateSelectedUI(index);
 
-        // 선택 상태 처리
-        for (int i = 0; i < slots.Length; i++)
-        {
-            slots[i].SetSelected(i == index); // 선택 슬롯만 검게
-        }
+        for (int i = 0; i < slotViews.Length; i++)
+            slotViews[i].SetSelected(i == index);
     }
 
     private void UpdateSelectedUI(int index)
@@ -98,22 +87,31 @@ public class InventoryV : MonoBehaviour
             equipButton.SetActive(false);
             unequipButton.SetActive(false);
             dropButton.SetActive(false);
-            slots[index].SetImageActive(false); // 빈 슬롯 이미지 숨기기
+            slotViews[index].SetImageActive(false); // 빈 슬롯 이미지 숨기기
             return;
         }
 
         var item = slot.Item.Value;
-        nameText.text = item.name;
+        nameText.text = item.itemName;
         descriptionText.text = $"Quantity: {slot.Quantity.Value}";
 
         equipButton.SetActive(!slot.Equipped.Value);
         unequipButton.SetActive(slot.Equipped.Value);
         dropButton.SetActive(true);
 
-        slots[index].SetImageActive(true);
-        slots[index].icon.sprite = item.icon;
+        slotViews[index].SetImageActive(true);
+        slotViews[index].icon.sprite = item.icon;
     }
 
 
-    private void OnDestroy() => disposables.Dispose();
+    private void OnDestroy()
+    {
+        useButton.GetComponent<Button>().onClick.RemoveAllListeners();
+        equipButton.GetComponent<Button>().onClick.RemoveAllListeners();
+        unequipButton.GetComponent<Button>().onClick.RemoveAllListeners();
+        dropButton.GetComponent<Button>().onClick.RemoveAllListeners();
+
+        disposables.Dispose();
+        viewModel?.Dispose();
+    }
 }

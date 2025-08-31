@@ -41,7 +41,6 @@ public class PuzzleManager : MonoBehaviour
             }
         }
 
-        inventoryViewModel = UI_Manager.Instance._invenVM;
     }
 
     // Key 있어야 열리는 퍼즐

@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ItemSlotVM : IDisposable
 {
-    private CompositeDisposable disposables = new CompositeDisposable();
+    private readonly CompositeDisposable _disposables = new CompositeDisposable();
     public ItemSlotM Slot { get; }
     public ReadOnlyReactiveProperty<string> LabelText { get; }
     public ReadOnlyReactiveProperty<Sprite> Icon { get; }
@@ -20,47 +20,36 @@ public class ItemSlotVM : IDisposable
             Slot.Item, Slot.Quantity, Slot.Equipped,
             (item, qty, eq) =>
             {
-                if (item == null) return "";   // 빈 슬롯이면 빈 문자열
+                if (item == null) return "";
+                return $"{item.itemName} x{qty}" + (eq ? " [E]" : "");
+            }).ToReadOnlyReactiveProperty().AddTo(_disposables);
 
-                // ItemData 안의 displayName 사용
-                return $"{item.name} x{qty}" + (eq ? " [E]" : "");
-            })
-            .ToReadOnlyReactiveProperty()
-            .AddTo(disposables);
+        Icon = Slot.Item.Select(i => i?.icon).ToReadOnlyReactiveProperty().AddTo(_disposables);
+    }
 
-
-        // 아이콘도 ItemData에서 바로 가져오기
-        Icon = Slot.Item
-           .Select(item => item?.icon)
-           .ToReadOnlyReactiveProperty()
-           .AddTo(disposables);   
-    }   
-
-    public void Dispose() => disposables.Dispose();
+    public void Dispose() => _disposables.Dispose();
 }
 
 public class InventoryVM : IDisposable
 {
-    private CompositeDisposable disposables = new CompositeDisposable();
+    private readonly CompositeDisposable _disposables = new CompositeDisposable();
     public List<ItemSlotVM> Slots { get; }
-    public InventoryM Model { get; }  // InventoryM 직접 참조
+    public InventoryM Model { get; }
     public ReactiveProperty<int?> SelectedIndex { get; }
 
     public InventoryVM(InventoryM model)
     {
-        Model = model;
-        Slots = model.Slots.Select(s => new ItemSlotVM(s)).ToList();
-        SelectedIndex = new ReactiveProperty<int?>(null).AddTo(disposables);
+        Model = model ?? throw new ArgumentNullException(nameof(model));
+        if (Model.Slots == null) throw new InvalidOperationException("InventoryVM: Slots is null");
 
-        // 전역 아이템 픽업 이벤트 구독
-        ItemObject.OnItemPickedGlobal
-            .Subscribe(item => model.AddItem(item, 1))
-            .AddTo(disposables);
+        Slots = model.Slots.Select(s => new ItemSlotVM(s)).ToList();
+        SelectedIndex = new ReactiveProperty<int?>(null).AddTo(_disposables);
     }
+
     public void Dispose()
     {
-        foreach (var s in Slots) s.Dispose();
+        foreach (var slotVM in Slots) slotVM.Dispose();
         SelectedIndex.Dispose();
-        disposables.Dispose();
+        _disposables.Dispose();
     }
 }

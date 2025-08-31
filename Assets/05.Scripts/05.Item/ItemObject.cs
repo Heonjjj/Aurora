@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UniRx;
 
-public interface IInteractable
+public interface IInteractable //확장가능 문,상자,NPC 등
 {
     public string GetInteractPrompt();
     public void OnInteract();
@@ -15,7 +15,7 @@ public class ItemObject : MonoBehaviour, IInteractable
     public static Subject<ItemData> OnItemPickedGlobal = new Subject<ItemData>(); // 전역 이벤트
 
     public string GetInteractPrompt()
-            => data == null ? "" : $"{data.name}\n{data.description}";
+            => data == null ? "" : $"{data.itemName}\n{data.description}";
 
     public void OnInteract()
     {

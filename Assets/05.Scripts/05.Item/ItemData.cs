@@ -1,35 +1,24 @@
 using UnityEngine;
 
-public enum EquipableType
+public enum ItemType
 {
-    Helmet,
-    Armor,
-    Pants,
-    Weapon,
-    Necklace,
-    Ring
-}
-public interface IUsable
-{
-    void Use(PlayerM player); // 사용 시 호출
+    None,
+    Consumable,
+    Equipment
 }
 
-public interface IEquipable
-{
-    EquipableType SlotType { get; }
-    void OnEquip(PlayerM player);
-    void OnUnequip(PlayerM player);
-}
-
-public abstract class ItemData : ScriptableObject
+[CreateAssetMenu(fileName = "NewItem", menuName = "Item/Generic")]
+public class ItemData : ScriptableObject
 {
     [Header("Info")]
-    public string name;
+    public string itemName;
     public string description;
     public Sprite icon;
-    public GameObject itemPrefab;
     public bool stackable;
     public int maxStack = 99;
+    //public GameObject itemPrefab; //item드랍을 위한 변수
 
-    public virtual void OnUse(PlayerM player) { } // 기본 구현
+
+    [Header("Type")]
+    public ItemType itemType = ItemType.None;
 }

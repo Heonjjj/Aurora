@@ -1,10 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UniRx;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UniRx;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public interface IDamageble
 {
@@ -19,6 +21,39 @@ public enum PlayerState
     Attack,
     Damaged,
     Dead
+}
+public sealed class PlayerContext : IDisposable
+{
+    public IPlayer Player { get; }
+    public IInventory Inventory { get; }
+    public PlayerVM PlayerVM { get; }
+    public InventoryVM InventoryVM { get; }
+    public EventMediator Mediator { get; }
+
+    public PlayerContext(int inventorySize)
+    {
+        // 실제 구현체 생성
+        var playerM = new PlayerM();
+        var inventoryM = new InventoryM(inventorySize);
+
+        // 인터페이스로 노출 (외부에서는 IPlayer/IInventory만 보이도록)
+        Player = playerM;
+        Inventory = inventoryM;
+
+        // VM 초기화
+        PlayerVM = new PlayerVM(playerM);
+        InventoryVM = new InventoryVM(inventoryM);
+
+        // Mediator 연결 (인터페이스 기반)
+        Mediator = new EventMediator(Inventory, Player, new InvenActionRule());
+    }
+
+    public void Dispose()
+    {
+        Mediator.Dispose();
+        PlayerVM.Dispose();
+        InventoryVM.Dispose();
+    }
 }
 
 public class UI_Manager : MonoBehaviour
@@ -42,15 +77,10 @@ public class UI_Manager : MonoBehaviour
         }
     }
 
-    public PlayerM _playerM { get; private set; }
-    public PlayerVM _playerVM { get; private set; }
-
-    public InventoryM _invenM { get; private set; }
-    public InventoryVM _invenVM { get; private set; }
-
+    [Header("Views")]
     public PlayerV _playerV;
-    public InventoryV _invenV;
-    private EventMediator _mediator;
+    public InventoryV _inventoryV;
+    private PlayerContext _context;
 
     [Header("Panel")]
     public UI_SettingPanel _settingPanel;
@@ -84,16 +114,29 @@ public class UI_Manager : MonoBehaviour
         _instance = this;
         DontDestroyOnLoad(gameObject);
 
-        _playerM = new PlayerM();
-        _playerVM = new PlayerVM(_playerM);
+        // PlayerContext 생성 (모든 M + VM + Mediator 한 번에 준비됨)
+        _context = new PlayerContext(24);
+        // View 초기화 (VM과 Mediator 주입)
+        _playerV.Init(_context.PlayerVM);
+        _inventoryV.Init(_context.InventoryVM, _context.Mediator, _context.Player);
 
-        _invenM = new InventoryM(24);
-        _invenVM = new InventoryVM(_invenM);
-
-        _mediator = new EventMediator(_invenM);
+        // 패널 초기 상태 설정
+        InitPanels();
     }
 
     private void Start()
+    {
+        // Start에서는 단순 UI 활성화/비활성화만
+        _inventoryV.gameObject.SetActive(true);
+        _inventoryV.gameObject.SetActive(false); // 처음에는 숨김
+    }
+
+    private void OnDestroy()
+    {
+        _context?.Dispose();
+    }
+
+    private void InitPanels()
     {
         _guiPanel.SetActive(false);
         _crosshair.SetActive(false);
@@ -107,17 +150,11 @@ public class UI_Manager : MonoBehaviour
         _log.SetActive(false);
 
         _settingPanel.gameObject.SetActive(false);
-        _invenV.gameObject.SetActive(false);
+        _inventoryV.gameObject.SetActive(false);
         _overPanel.SetActive(false);
         _savePanel.SetActive(false);
         _introPanel.gameObject.SetActive(true);
 
         _settingPanel.InitPanel();
-
-        _invenV.gameObject.SetActive(true);
-        _invenV.Init(_invenVM, _playerM);
-        _invenV.gameObject.SetActive(false);
-
-        _playerV.Init(_playerVM);
     }
 }

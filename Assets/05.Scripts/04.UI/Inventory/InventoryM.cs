@@ -55,8 +55,17 @@ public sealed class ItemSlotM //관리대상으로 만들어서, 장비창에도 재활용가능
     public void UnEquip() => _equipped.Value = false;
 }
 
+public interface IInventory
+{
+    IReadOnlyList<ItemSlotM> Slots { get; }
+    bool TryUseItem(int index, IPlayer player, IActionRule actionRule);
+    bool TryEquipSlot(int index, IPlayer player, IActionRule actionRule);
+    bool TryUnEquipSlot(int index, IPlayer player, IActionRule actionRule);
+    void AddItem(ItemData item, int amount);
+    void RemoveItem(int index, int amount);
+}
 
-public sealed class InventoryM
+public sealed class InventoryM : IInventory
 {
     private List<ItemSlotM> _slots;
     public IReadOnlyList<ItemSlotM> Slots => _slots;
@@ -100,12 +109,63 @@ public sealed class InventoryM
     }
 
 
-    // 이벤트: Mediator가 구독
-    public event Action<int, PlayerM> OnUseRequested;
-    public event Action<int, PlayerM> OnEquipRequested;
-    public event Action<int, PlayerM> OnUnEquipRequested;
+    // 슬롯 요청 처리 (Equip/UnEquip)
+    public bool TryEquipSlot(int index, IPlayer player, IActionRule rule)
+    {
+        if (index < 0 || index >= _slots.Count) return false;
 
-    public void RequestUse(int index, PlayerM player) => OnUseRequested?.Invoke(index, player);
-    public void RequestEquip(int index, PlayerM player) => OnEquipRequested?.Invoke(index, player);
-    public void RequestUnEquip(int index, PlayerM player) => OnUnEquipRequested?.Invoke(index, player);
+        var slot = _slots[index];
+        var item = slot.Item.Value;
+        if (item == null) return false;
+
+        if (!rule.CanEquip(player, item)) return false;
+
+        // 같은 슬롯 장착 해제
+        if (item is EquipmentData eq)
+        {
+            foreach (var s in _slots)
+            {
+                if (s.Equipped.Value && s.Item.Value is EquipmentData otherEq &&
+                    otherEq.equipSlot == eq.equipSlot)
+                {
+                    s.UnEquip();
+                    rule.OnUnEquip(player, otherEq);
+                }
+            }
+        }
+
+        slot.Equip();
+        rule.OnEquip(player, item);
+        return true;
+    }
+
+    public bool TryUnEquipSlot(int index, IPlayer player, IActionRule rule)
+    {
+        if (index < 0 || index >= _slots.Count) return false;
+
+        var slot = _slots[index];
+        var item = slot.Item.Value;
+        if (item == null) return false;
+
+        if (!rule.CanUnEquip(player, item)) return false;
+
+        slot.UnEquip();
+        rule.OnUnEquip(player, item);
+        return true;
+    }
+
+    public bool TryUseItem(int index, IPlayer player, IActionRule rule)
+    {
+        if (index < 0 || index >= _slots.Count) return false;
+
+        var slot = _slots[index];
+        var item = slot.Item.Value;
+        if (item == null) return false;
+
+        if (!rule.CanUse(player, item)) return false;
+
+        rule.OnUse(player, item);
+        slot.ChangeQuantity(-1); // 사용 후 수량 감소
+        return true;
+    }
 }

@@ -1,20 +1,12 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewConsumable", menuName = "Item/Consumable")]
-public class ConsumableData : ItemData, IUsable
+public class ConsumableData : ItemData
 {
-    [Header("Heal")]
+    [Header("Consumable Stats")]
     public int healAmount;
-    public float duration; // 효과 지속시간
-
-    [Header("Buff")]
     public int expAmount;
+    public float duration; // 버프 지속시간
 
-    public void Use(PlayerM player)
-    {
-        player.Heal(healAmount);
-        player.GainExp(expAmount);
-        Debug.Log($"Used {name}, healed {healAmount} HP!");
-    }
-    public override void OnUse(PlayerM player) => Use(player);
+    private void OnEnable() => itemType = ItemType.Consumable;
 }

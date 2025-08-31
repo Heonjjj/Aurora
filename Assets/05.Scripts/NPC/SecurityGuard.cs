@@ -54,7 +54,6 @@ public class NPC : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
         navMeshAgent = GetComponent<NavMeshAgent>();
-        player = UI_Manager.Instance._playerVM;
         var audio = AudioManager.Instance;
     }
 
